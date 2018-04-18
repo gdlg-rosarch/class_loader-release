@@ -40,8 +40,6 @@
 #include <string>
 #include <vector>
 
-#include "class_loader/console_bridge_compatibility.hpp"
-
 namespace class_loader
 {
 

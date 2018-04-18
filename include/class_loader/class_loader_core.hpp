@@ -33,6 +33,7 @@
 #define CLASS_LOADER__CLASS_LOADER_CORE_HPP_
 
 #include <boost/thread/recursive_mutex.hpp>
+#include <cstddef>
 #include <cstdio>
 #include <map>
 #include <string>
@@ -58,7 +59,6 @@ namespace class_loader_private
 {
 
 // Typedefs
-/*****************************************************************************/
 typedef std::string LibraryPath;
 typedef std::string ClassName;
 typedef std::string BaseClassName;
@@ -69,11 +69,9 @@ typedef std::vector<LibraryPair> LibraryVector;
 typedef std::vector<AbstractMetaObjectBase *> MetaObjectVector;
 
 // Debug
-/*****************************************************************************/
 void printDebugInfoToScreen();
 
 // Global storage
-/*****************************************************************************/
 
 /**
  * @brief Gets a handle to a global data structure that holds a map of base class names (Base class describes plugin interface) to a FactoryMap which holds the factories for the various different concrete classes that can be instantiated. Note that the Base class is NOT THE LITERAL CLASSNAME, but rather the result of typeid(Base).name() which sometimes is the literal class name (as on Windows) but is often in mangled form (as on Linux).
@@ -149,7 +147,6 @@ bool hasANonPurePluginLibraryBeenOpened();
 void hasANonPurePluginLibraryBeenOpened(bool hasIt);
 
 // Plugin Functions
-/*****************************************************************************/
 
 /**
  * @brief This function is called by the CLASS_LOADER_REGISTER_CLASS macro in plugin_register_macro.h to register factories.
@@ -170,7 +167,7 @@ void registerPlugin(const std::string & class_name, const std::string & base_cla
     class_name.c_str(), getCurrentlyActiveClassLoader(),
     getCurrentlyLoadingLibraryName().c_str());
 
-  if (NULL == getCurrentlyActiveClassLoader()) {
+  if (nullptr == getCurrentlyActiveClassLoader()) {
     CONSOLE_BRIDGE_logDebug("%s",
       "class_loader.impl: ALERT!!! "
       "A library containing plugins has been opened through a means other than through the "
@@ -217,7 +214,7 @@ void registerPlugin(const std::string & class_name, const std::string & base_cla
   CONSOLE_BRIDGE_logDebug(
     "class_loader.class_loader_private: "
     "Registration of %s complete (Metaobject Address = %p)",
-    class_name.c_str(), new_factory);
+    class_name.c_str(), reinterpret_cast<void *>(new_factory));
 }
 
 /**
@@ -229,7 +226,7 @@ void registerPlugin(const std::string & class_name, const std::string & base_cla
 template<typename Base>
 Base * createInstance(const std::string & derived_class_name, ClassLoader * loader)
 {
-  AbstractMetaObject<Base> * factory = NULL;
+  AbstractMetaObject<Base> * factory = nullptr;
 
   getPluginBaseToFactoryMapMapMutex().lock();
   FactoryMap & factoryMap = getFactoryMapForBaseClass<Base>();
@@ -243,13 +240,13 @@ Base * createInstance(const std::string & derived_class_name, ClassLoader * load
   }
   getPluginBaseToFactoryMapMapMutex().unlock();
 
-  Base * obj = NULL;
-  if (factory != NULL && factory->isOwnedBy(loader)) {
+  Base * obj = nullptr;
+  if (factory != nullptr && factory->isOwnedBy(loader)) {
     obj = factory->create();
   }
 
-  if (NULL == obj) {  // Was never created
-    if (factory && factory->isOwnedBy(NULL)) {
+  if (nullptr == obj) {  // Was never created
+    if (factory && factory->isOwnedBy(nullptr)) {
       CONSOLE_BRIDGE_logDebug("%s",
         "class_loader.impl: ALERT!!! "
         "A metaobject (i.e. factory) exists for desired class, but has no owner. "
@@ -263,15 +260,15 @@ Base * createInstance(const std::string & derived_class_name, ClassLoader * load
 
       obj = factory->create();
     } else {
-      throw(class_loader::CreateClassException(
-              "Could not create instance of type " + derived_class_name));
+      throw class_loader::CreateClassException(
+              "Could not create instance of type " + derived_class_name);
     }
   }
 
   CONSOLE_BRIDGE_logDebug(
     "class_loader.class_loader_private: "
     "Created instance of type %s and object pointer = %p",
-    (typeid(obj).name()), obj);
+    (typeid(obj).name()), reinterpret_cast<void *>(obj));
 
   return obj;
 }
@@ -290,12 +287,12 @@ std::vector<std::string> getAvailableClasses(ClassLoader * loader)
   std::vector<std::string> classes;
   std::vector<std::string> classes_with_no_owner;
 
-  for (FactoryMap::const_iterator itr = factory_map.begin(); itr != factory_map.end(); ++itr) {
-    AbstractMetaObjectBase * factory = itr->second;
+  for (auto & it : factory_map) {
+    AbstractMetaObjectBase * factory = it.second;
     if (factory->isOwnedBy(loader)) {
-      classes.push_back(itr->first);
-    } else if (factory->isOwnedBy(NULL)) {
-      classes_with_no_owner.push_back(itr->first);
+      classes.push_back(it.first);
+    } else if (factory->isOwnedBy(nullptr)) {
+      classes_with_no_owner.push_back(it.first);
     }
   }
 

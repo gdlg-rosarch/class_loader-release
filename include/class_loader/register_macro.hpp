@@ -32,10 +32,8 @@
 
 #include <string>
 
-#include "console_bridge/console.h"
-
 #include "class_loader/class_loader_core.hpp"
-#include "class_loader/console_bridge_compatibility.hpp"
+#include "console_bridge/console.h"
 
 #define CLASS_LOADER_REGISTER_CLASS_INTERNAL_WITH_MESSAGE(Derived, Base, UniqueID, Message) \
   namespace \

@@ -1,5 +1,13 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(class_loader)
+cmake_minimum_required(VERSION 3.5)
+project(class_loader CXX)
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 find_package(Boost REQUIRED COMPONENTS thread system)
 
@@ -23,13 +31,10 @@ else()
   message("-- catkin not found")
   set(Poco_DIR cmake)
   find_package(Poco REQUIRED COMPONENTS Foundation)
+  set(CATKIN_PACKAGE_LIB_DESTINATION lib)
   set(CATKIN_GLOBAL_BIN_DESTINATION bin)
-  set(CATKIN_GLOBAL_LIB_DESTINATION lib)
-  set(CATKIN_GLOBAL_LIBEXEC_DESTINATION lib)
-  set(CATKIN_GLOBAL_INCLUDE_DESTINATION include)
-  set(CATKIN_PACKAGE_LIB_DESTINATION ${CATKIN_GLOBAL_LIB_DESTINATION})
-  set(CATKIN_PACKAGE_BIN_DESTINATION ${CATKIN_GLOBAL_LIBEXEC_DESTINATION}/${PROJECT_NAME})
-  set(CATKIN_PACKAGE_INCLUDE_DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}/${PROJECT_NAME})
+  set(CATKIN_GLOBAL_BIN_DESTINATION bin)
+  set(CATKIN_PACKAGE_INCLUDE_DESTINATION include/class_loader)
 endif()
 
 include_directories(include ${console_bridge_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${Poco_INCLUDE_DIRS})
@@ -45,7 +50,6 @@ set(${PROJECT_NAME}_HDRS
   include/class_loader/class_loader_core.h
   include/class_loader/class_loader_exceptions.h
   include/class_loader/class_loader_register_macro.h
-  include/class_loader/console_bridge_compatibility.h
   include/class_loader/meta_object.h
   include/class_loader/multi_library_class_loader.h
 )
